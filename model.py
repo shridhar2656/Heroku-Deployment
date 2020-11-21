@@ -1,39 +1,54 @@
-# Importing the libraries
+# importing the libraries
+
 import numpy as np
-import matplotlib.pyplot as plt
 import pandas as pd
+import matplotlib.pyplot as plt
 import pickle
 
-dataset = pd.read_csv('hiring.csv')
+# importing the dataset
 
-dataset['experience'].fillna(0, inplace=True)
+dataset = pd.read_csv("Salary_Data.csv")
+X = dataset.iloc[:,:-1].values
+y = dataset.iloc[:,-1].values
 
-dataset['test_score'].fillna(dataset['test_score'].mean(), inplace=True)
 
-X = dataset.iloc[:, :3]
+# splitting dataset into training and testing
 
-#Converting words to integer values
-def convert_to_int(word):
-    word_dict = {'one':1, 'two':2, 'three':3, 'four':4, 'five':5, 'six':6, 'seven':7, 'eight':8,
-                'nine':9, 'ten':10, 'eleven':11, 'twelve':12, 'zero':0, 0: 0}
-    return word_dict[word]
+from sklearn.model_selection import train_test_split
+X_train,X_test,y_train,y_test = train_test_split(X,y,test_size=0.2,random_state=0)
 
-X['experience'] = X['experience'].apply(lambda x : convert_to_int(x))
-
-y = dataset.iloc[:, -1]
-
-#Splitting Training and Test Set
-#Since we have a very small dataset, we will train our model with all availabe data.
+# training the simple linear regression model on training data set
 
 from sklearn.linear_model import LinearRegression
 regressor = LinearRegression()
+regressor.fit(X_train,y_train)
 
-#Fitting model with trainig data
-regressor.fit(X, y)
+# predicting the test set data
+y_pred = regressor.predict(X_test)
 
-# Saving model to disk
-pickle.dump(regressor, open('model.pkl','wb'))
+
+# real salary vs predicted
+plt.scatter(X_train,y_train , color = 'red')
+plt.plot(X_train , regressor.predict(X_train) , color='blue')
+plt.title('Salary vs Experience (Training set)')
+plt.xlabel('Years of experience')
+plt.ylabel('Salary')
+plt.show()
+
+
+plt.scatter(X_test,y_test , color = 'red')
+plt.plot(X_train , regressor.predict(X_train) , color='blue')
+plt.title('Salary vs Experience (Testing set)')
+plt.xlabel('Years of experience')
+plt.ylabel('Salary')
+plt.show()
+
+
+#saving model to disk
+pickle.dump(regressor,open('model.pkl','wb'))
+
+
 
 # Loading model to compare the results
 model = pickle.load(open('model.pkl','rb'))
-print(model.predict([[2, 9, 6]]))
+print(model.predict([[2]]))
